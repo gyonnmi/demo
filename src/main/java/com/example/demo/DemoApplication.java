@@ -1,5 +1,7 @@
 package com.example.demo;
 
+import com.example.demo.domain.Nekomaru;
+import com.example.demo.repository.NekomaruDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -20,26 +22,19 @@ public class DemoApplication implements CommandLineRunner {
 
     // 자동으로 주입 받는다.
     @Autowired
-    DataSource dataSource;
+    NekomaruDao nekomaruDao;
 
-    // DataSource Bean(스프링이 관리하는 객체)
     @Override
     public void run(String... args) throws Exception {
-//        System.out.println("스프링부트가 관리하는 빈을 사용할 수 있다.");
-//
-//        // JDBC 연결
-//        Connection conn = dataSource.getConnection();
-//        PreparedStatement ps = conn.prepareStatement("select neko_id, neko_name from nekomaru");
-//        ResultSet rs = ps.executeQuery();
-//        while(rs.next()) {
-//            int neko_id = rs.getInt("neko_id");
-//            String neko_name = rs.getString("neko_name");
-//            System.out.println(neko_id + ", " + neko_name);
-//        }
-//
-//        rs.close();
-//        ps.close();
-//        conn.close();
+//        Nekomaru nekomaru = new Nekomaru();
+//        nekomaru.setNeko_id(4);
+//        nekomaru.setNeko_name("dao");
+//        nekomaruDao.insertNeko(nekomaru);
 
+//        boolean flag = nekomaruDao.deleteNeko(4);
+//        System.out.println("flag : " + flag);
+
+        Nekomaru nekomaru = nekomaruDao.getNekomaru(1);
+        System.out.println(nekomaru.getNeko_id() + ", " + nekomaru.getNeko_name());
     }
 }
