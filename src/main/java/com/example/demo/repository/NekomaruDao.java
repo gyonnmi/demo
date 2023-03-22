@@ -1,8 +1,12 @@
 package com.example.demo.repository;
 
 import com.example.demo.domain.Nekomaru;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsertOperations;
@@ -15,13 +19,13 @@ import java.util.List;
 // @Repository는 @Component 이고 컨테이너가 관리하는 Bean이 된다.
 @Repository
 public class NekomaruDao {
-    private final JdbcTemplate jdbcTemplate; // 필드를 final로 선언하면 반드시 생성자에서 초기화 한다.
+    private final NamedParameterJdbcTemplate jdbcTemplate; // 필드를 final로 선언하면 반드시 생성자에서 초기화 한다.
     private SimpleJdbcInsertOperations insertAction; // insert를 쉽게 하도록 도와주는 인터페이스
 
     // 생성자에 파라미터를 넣어주면 스프링 부트가 자동으로 주입한다. 생성자 주입.
     public NekomaruDao(DataSource dataSource) {
         System.out.println("NekomaruDao 생성자 호출!");
-        jdbcTemplate = new JdbcTemplate(dataSource); // DataSource를 넣어줘야 한다.
+        jdbcTemplate = new NamedParameterJdbcTemplate(dataSource); // DataSource를 넣어줘야 한다.
 
         insertAction = new SimpleJdbcInsert(dataSource).withTableName("nekomaru"); // insert할 테이블 이름을 넣어준다.
     }
@@ -41,40 +45,32 @@ public class NekomaruDao {
         return resert == 1;
     }
 
+    // NamedParameterJdbcTemplate 사용
     public boolean deleteNeko(int neko_id) {
-        String sql = "DELETE FROM nekomaru WHERE neko_id = ?";
-        int result = jdbcTemplate.update(sql, neko_id);
+        String sql = "DELETE FROM nekomaru WHERE neko_id = :neko_id";
+        SqlParameterSource params = new MapSqlParameterSource("neko_id", neko_id);
+        int result = jdbcTemplate.update(sql, params);
         return result == 1;
     }
 
     // 1건의 데이터를 읽어오는 메소드
     public Nekomaru getNekomaru(int neko_id) {
-        String sql = "SELECT neko_id, neko_name FROM nekomaru WHERE neko_id = ?"; // neko_id는 PK니까 1건 or 0건의 데이터가 조회된다.
+        String sql = "SELECT neko_id, neko_name FROM nekomaru WHERE neko_id = :neko_id"; // neko_id는 PK니까 1건 or 0건의 데이터가 조회된다.
         // queryForObject 메소드는 1건 또는 0건을 읽어오는 메소드.
         try {
-            return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> { // 람다 표현식
-                Nekomaru nekomaru = new Nekomaru();
-                nekomaru.setNeko_id(rs.getInt("neko_id"));
-                nekomaru.setNeko_name(rs.getString("neko_name"));
-                return nekomaru;
-            }, neko_id);
+            SqlParameterSource params = new MapSqlParameterSource("neko_id", neko_id);
+            RowMapper<Nekomaru> nekomaruRowMapper = BeanPropertyRowMapper.newInstance(Nekomaru.class);
+            return jdbcTemplate.queryForObject(sql, params, nekomaruRowMapper);
         } catch (Exception e) {
             return null;
         }
     }
 
-    ;
-
     // 모든 데이터를 읽어오는 메소드
     public List<Nekomaru> getNekos() {
         String sql = "SELECT neko_id, neko_name FROM nekomaru";
+        RowMapper<Nekomaru> nekomaruRowMapper = BeanPropertyRowMapper.newInstance(Nekomaru.class);
         // query 메소드는 여러건의 결과를 구할 때 사용하는 메소드.
-        return (List<Nekomaru>) jdbcTemplate.query(sql, (rs, rowNum) -> {
-                    Nekomaru nekomaru = new Nekomaru();
-                    nekomaru.setNeko_id(rs.getInt("neko_id"));
-                    nekomaru.setNeko_name(rs.getString("neko_name"));
-                    return nekomaru;
-                }
-        );
+        return (List<Nekomaru>) jdbcTemplate.query(sql, nekomaruRowMapper);
     }
 }
