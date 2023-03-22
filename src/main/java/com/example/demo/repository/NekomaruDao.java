@@ -19,7 +19,9 @@ import java.util.List;
 // @Repository는 @Component 이고 컨테이너가 관리하는 Bean이 된다.
 @Repository
 public class NekomaruDao {
+    // NamedParameterJdbcTemplate는 ? 대신 :컬럼명의 형태로 사용 가능하다.
     private final NamedParameterJdbcTemplate jdbcTemplate; // 필드를 final로 선언하면 반드시 생성자에서 초기화 한다.
+    // SimpleJdbcInsertOperations는 SQL 없이 insert를 도와주는 인터페이스
     private SimpleJdbcInsertOperations insertAction; // insert를 쉽게 하도록 도와주는 인터페이스
 
     // 생성자에 파라미터를 넣어주면 스프링 부트가 자동으로 주입한다. 생성자 주입.
@@ -41,8 +43,8 @@ public class NekomaruDao {
         // 위와 같은 SQL을 SimpleJdbcInsert가 내부적으로 만든다.
         // Nekomaru 클래스의 프로퍼티 이름과 컬럼명의 규칙이 맞아야 한다.
         SqlParameterSource params = new BeanPropertySqlParameterSource(nekomaru); // nekomaru 객체의 필드명과 테이블의 컬럼명이 같아야 한다.
-        int resert = insertAction.execute(params);
-        return resert == 1;
+        int result = insertAction.execute(params);
+        return result == 1;
     }
 
     // NamedParameterJdbcTemplate 사용
